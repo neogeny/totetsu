@@ -1,26 +1,29 @@
-import { type Cfg, defaultCfg } from "@config/config"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import { type Cfg, defaultCfg } from "@config/config";
 
 export function newCfg(opts: {
-  trace?: boolean
-  start?: string
-  color?: string
+  trace?: boolean;
+  start?: string;
+  color?: string;
 }): Cfg {
-  const c = defaultCfg()
+  const c = defaultCfg();
   if (opts.trace) {
-    c.trace = true
+    c.trace = true;
   }
-  if (opts.start) c.start = opts.start
+  if (opts.start) c.start = opts.start;
   if (opts.color) {
     switch (opts.color) {
       case "auto":
-        c.colorize = process.stderr.isTTY
-        break
+        c.colorize = process.stderr.isTTY;
+        break;
       case "always":
-        c.colorize = true
-        break
+        c.colorize = true;
+        break;
       case "never":
-        c.colorize = false
+        c.colorize = false;
     }
   }
-  return c
+  return c;
 }

@@ -1,15 +1,18 @@
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
 // noinspection ExceptionCaughtLocallyJS
 
-import type { MemoKey } from "@context"
+import type { MemoKey } from "@context";
 import {
   BOTTOM,
   type Ctx,
   isBottomEntry,
   isParseError,
   ParseError,
-} from "@context"
-import type { TreeValue } from "@trees"
-import type { Rule } from "../rule"
+} from "@context";
+import type { TreeValue } from "@trees";
+import type { Rule } from "../rule";
 
 /**
  * Implements the rule call semantics that were present in the Go version.
@@ -20,51 +23,51 @@ import type { Rule } from "../rule"
  *   • Name‑rule keyword reservation checks
  */
 export function call(ctx: Ctx, name: string, rule: Rule | null): TreeValue {
-  ctx.heartbeat()
-  ctx.enter(name)
+  ctx.heartbeat();
+  ctx.enter(name);
   try {
     if (rule === null) {
-      throw ctx.failure(ctx.mark(), new ParseError(`rule not linked: ${name}`))
+      throw ctx.failure(ctx.mark(), new ParseError(`rule not linked: ${name}`));
     }
     if (rule.shouldTrace()) {
-      ctx.tracer().traceEntry(ctx)
+      ctx.tracer().traceEntry(ctx);
     }
 
     if (!rule.isToken()) {
-      ctx.nextToken()
+      ctx.nextToken();
     }
-    const start = ctx.mark()
-    const key = ctx.key(name, rule.isMemoizable())
+    const start = ctx.mark();
+    const key = ctx.key(name, rule.isMemoizable());
 
-    let tree: TreeValue = null
-    const mark = ctx.mark()
+    let tree: TreeValue = null;
+    const mark = ctx.mark();
     try {
-      tree = doCall(ctx, name, rule)
+      tree = doCall(ctx, name, rule);
     } catch (error) {
       if (isParseError(error)) {
-        ctx.memoize(key, error as ParseError, start)
+        ctx.memoize(key, error as ParseError, start);
         if (rule.shouldTrace()) {
-          ctx.tracer().traceFailure(ctx, name)
+          ctx.tracer().traceFailure(ctx, name);
         }
       }
-      ctx.reset(mark)
-      throw error
+      ctx.reset(mark);
+      throw error;
     }
-    const value = tree ? tree.toString() : name
+    const value = tree ? tree.toString() : name;
     if (rule.isName && ctx.isKeyword(value)) {
       throw ctx.failure(
         ctx.mark(),
         new ParseError(`'${value}' is a reserved word`),
-      )
+      );
     }
 
-    ctx.memoize(key, tree, ctx.mark())
+    ctx.memoize(key, tree, ctx.mark());
     if (rule.shouldTrace()) {
-      ctx.tracer().traceSuccess(ctx)
+      ctx.tracer().traceSuccess(ctx);
     }
-    return tree
+    return tree;
   } finally {
-    ctx.leave()
+    ctx.leave();
   }
 }
 
@@ -75,24 +78,24 @@ export function call(ctx: Ctx, name: string, rule: Rule | null): TreeValue {
  * TieXiu approach so that nested left‑recursive calls share the same LR key.
  */
 function doCall(ctx: Ctx, name: string, rule: Rule): TreeValue {
-  const key = ctx.key(name, rule.isMemoizable())
-  const memo = ctx.memo(key)
+  const key = ctx.key(name, rule.isMemoizable());
+  const memo = ctx.memo(key);
   if (memo) {
     if (isBottomEntry(memo)) {
       if (rule.shouldTrace()) {
-        ctx.tracer().traceFailure(ctx, name)
+        ctx.tracer().traceFailure(ctx, name);
       }
-      throw memo.value as ParseError
+      throw memo.value as ParseError;
     }
-    ctx.reset(memo.mark)
-    return memo.value
+    ctx.reset(memo.mark);
+    return memo.value;
   }
 
   if (rule.isLeftRecursive()) {
-    return callRecursive(ctx, name, rule, key)
+    return callRecursive(ctx, name, rule, key);
   }
 
-  return rule.parse(ctx)
+  return rule.parse(ctx);
 }
 
 function callRecursive(
@@ -101,49 +104,49 @@ function callRecursive(
   rule: Rule,
   key: MemoKey,
 ): TreeValue {
-  const start = ctx.mark()
-  ctx.tracer().traceRecursion(ctx)
-  ctx.memoize(key, BOTTOM, ctx.mark())
+  const start = ctx.mark();
+  ctx.tracer().traceRecursion(ctx);
+  ctx.memoize(key, BOTTOM, ctx.mark());
 
-  let lastMark = start
-  let lastTree: TreeValue = null
+  let lastMark = start;
+  let lastTree: TreeValue = null;
 
   while (!ctx.atEnd()) {
-    ctx.reset(start)
-    ctx.track(key)
+    ctx.reset(start);
+    ctx.track(key);
     try {
       if (ctx.recursionDepthExceeded()) {
         throw ctx.failure(
           ctx.mark(),
           new ParseError(`left recursion depth exceeded for rule: ${key.name}`),
-        )
+        );
       }
 
       try {
-        const result = rule.parse(ctx)
-        if (result === BOTTOM) break
+        const result = rule.parse(ctx);
+        if (result === BOTTOM) break;
 
-        const endMark = ctx.mark()
-        if (endMark <= lastMark) break
+        const endMark = ctx.mark();
+        if (endMark <= lastMark) break;
 
-        lastMark = endMark
-        lastTree = result
-        ctx.memoize(key, lastTree, lastMark)
+        lastMark = endMark;
+        lastTree = result;
+        ctx.memoize(key, lastTree, lastMark);
       } catch (error) {
-        if (isParseError(error)) break
-        throw error
+        if (isParseError(error)) break;
+        throw error;
       }
     } finally {
-      ctx.untrack(key)
+      ctx.untrack(key);
     }
   }
 
-  ctx.reset(lastMark)
-  ctx.memoize(key, lastTree as TreeValue, lastMark)
+  ctx.reset(lastMark);
+  ctx.memoize(key, lastTree as TreeValue, lastMark);
 
   if (lastTree === BOTTOM) {
-    ctx.reset(start)
-    return null
+    ctx.reset(start);
+    return null;
   }
-  return lastTree
+  return lastTree;
 }

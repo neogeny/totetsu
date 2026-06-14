@@ -1,24 +1,27 @@
-import { type Ctx, isParseError } from "@context"
-import type { TreeValue } from "@trees"
-import type { Exp } from "../exp"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import { type Ctx, isParseError } from "@context";
+import type { TreeValue } from "@trees";
+import type { Exp } from "../exp";
 
 export function tryExp(ctx: Ctx, exp: Exp): [TreeValue, boolean] {
-  const mark = ctx.mark()
-  let tree: TreeValue = null
-  let cutSeen = false
+  const mark = ctx.mark();
+  let tree: TreeValue = null;
+  let cutSeen = false;
   try {
-    ctx.cutStackPush()
+    ctx.cutStackPush();
     try {
-      tree = exp.parse(ctx)
+      tree = exp.parse(ctx);
     } finally {
-      cutSeen = ctx.cutStackPop()
+      cutSeen = ctx.cutStackPop();
     }
   } catch (error) {
-    ctx.reset(mark)
+    ctx.reset(mark);
     if (!isParseError(error) || cutSeen) {
-      throw error
+      throw error;
     }
-    return [null, false]
+    return [null, false];
   }
-  return [tree, true]
+  return [tree, true];
 }

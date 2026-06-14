@@ -1,34 +1,37 @@
-import color from "picocolors"
-import type { Grammar } from "./grammar.js"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import color from "picocolors";
+import type { Grammar } from "./grammar.js";
 
 export function grammarSummary(g: Grammar, colorize?: boolean): string {
-  const lines: string[] = []
-  const pc = color.createColors(colorize !== false)
+  const lines: string[] = [];
+  const pc = color.createColors(colorize !== false);
 
-  lines.push(pc.bold(pc.cyan(g.name)))
-  lines.push("")
+  lines.push(pc.bold(pc.cyan(g.name)));
+  lines.push("");
 
   if (g.directives.length > 0) {
-    lines.push(pc.dim("directives:"))
+    lines.push(pc.dim("directives:"));
     for (const d of g.directives) {
-      lines.push(`  ${pc.yellow(`@${d[0]}`)} ${pc.dim("::")} ${d[1]}`)
+      lines.push(`  ${pc.yellow(`@${d[0]}`)} ${pc.dim("::")} ${d[1]}`);
     }
   }
 
   if (g.keywords.length > 0) {
-    if (g.directives.length > 0) lines.push("")
-    lines.push(`${pc.dim("keywords:")} ${pc.green(g.keywords.join(", "))}`)
+    if (g.directives.length > 0) lines.push("");
+    lines.push(`${pc.dim("keywords:")} ${pc.green(g.keywords.join(", "))}`);
   }
 
-  if (g.directives.length > 0 || g.keywords.length > 0) lines.push("")
-  lines.push(`${pc.dim("rules:")} ${g.rules.length}`)
+  if (g.directives.length > 0 || g.keywords.length > 0) lines.push("");
+  lines.push(`${pc.dim("rules:")} ${g.rules.length}`);
   for (const r of g.rules) {
     const deco =
       r.decorators.length > 0
         ? ` ${pc.green(`[${r.decorators.join(", ")}]`)}`
-        : ""
-    lines.push(`  ${pc.yellow(r.name)}${deco}`)
+        : "";
+    lines.push(`  ${pc.yellow(r.name)}${deco}`);
   }
 
-  return lines.join("\n")
+  return lines.join("\n");
 }

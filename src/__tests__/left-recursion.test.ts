@@ -1,8 +1,11 @@
-import assert from "node:assert/strict"
-import { describe, it } from "node:test"
-import { parse } from "@api"
-import { LeftRecursionError } from "@peg"
-import { asjson } from "@util/asjson"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { parse } from "@api";
+import { LeftRecursionError } from "@peg";
+import { asjson } from "@util/asjson";
 
 describe("left recursion", () => {
   it("direct left recursion", () => {
@@ -11,30 +14,30 @@ describe("left recursion", () => {
 start = expression $ ;
 expression = expression '+' factor | expression '-' factor | factor ;
 factor = number ;
-number = /[0-9]+/ ;`
-    const result = parse(grammar, "10 - 20")
-    assert.deepStrictEqual(asjson(result), ["10", "-", "20"])
-  })
+number = /[0-9]+/ ;`;
+    const result = parse(grammar, "10 - 20");
+    assert.deepStrictEqual(asjson(result), ["10", "-", "20"]);
+  });
 
   it("indirect left recursion y", () => {
     const grammar = `@@left_recursion :: True
 @@whitespace :: /\\s+/
 start = A $ ;
 A = B | 'x' ;
-B = A | 'y' ;`
-    const result = parse(grammar, "y")
-    assert.equal(asjson(result), "y")
-  })
+B = A | 'y' ;`;
+    const result = parse(grammar, "y");
+    assert.equal(asjson(result), "y");
+  });
 
   it("indirect left recursion x", () => {
     const grammar = `@@left_recursion :: True
 @@whitespace :: /\\s+/
 start = A $ ;
 A = B | 'x' ;
-B = A | 'y' ;`
-    const result = parse(grammar, "x")
-    assert.equal(asjson(result), "x")
-  })
+B = A | 'y' ;`;
+    const result = parse(grammar, "x");
+    assert.equal(asjson(result), "x");
+  });
 
   it("LR disabled via directive", () => {
     const grammar = `
@@ -43,17 +46,17 @@ B = A | 'y' ;`
 start = expression $ ;
 expression = expression '+' factor | expression '-' factor | factor ;
 factor = number ;
-number = /[0-9]+/ ;`
-    assert.throws(() => parse(grammar, "10 - 20"), LeftRecursionError)
-  })
+number = /[0-9]+/ ;`;
+    assert.throws(() => parse(grammar, "10 - 20"), LeftRecursionError);
+  });
 
   it("LR disabled with parens", () => {
     const grammar = `@@left_recursion :: False
 @@whitespace :: /\\s+/
 start = expr $ ;
 expr = '(' expr ')' | number ;
-number = /[0-9]+/ ;`
-    const result = parse(grammar, "((1))")
-    assert.deepStrictEqual(asjson(result), ["(", ["(", "1", ")"], ")"])
-  })
-})
+number = /[0-9]+/ ;`;
+    const result = parse(grammar, "((1))");
+    assert.deepStrictEqual(asjson(result), ["(", ["(", "1", ")"], ")"]);
+  });
+});

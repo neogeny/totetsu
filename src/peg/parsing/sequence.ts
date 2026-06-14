@@ -1,26 +1,29 @@
-import type { Ctx } from "@context"
-import { type TreeValue, treeMerge } from "@trees"
-import { ExpKind, type SeqExp } from "../exp"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import type { Ctx } from "@context";
+import { type TreeValue, treeMerge } from "@trees";
+import { ExpKind, type SeqExp } from "../exp";
 
 export function sequence(ctx: Ctx, seq: SeqExp): TreeValue {
-  const start = ctx.mark()
-  let out: TreeValue = null
+  const start = ctx.mark();
+  let out: TreeValue = null;
   for (const item of seq.sequence) {
     if (item.kind === ExpKind.Cut) {
-      ctx.cut()
-      continue
+      ctx.cut();
+      continue;
     }
     try {
-      const tree = item.parse(ctx)
+      const tree = item.parse(ctx);
       if (tree === null) {
         // NOTE This is handled by treeMerge()
-        continue
+        continue;
       }
-      out = treeMerge(out, tree)
+      out = treeMerge(out, tree);
     } catch (error) {
-      ctx.reset(start)
-      throw error
+      ctx.reset(start);
+      throw error;
     }
   }
-  return out
+  return out;
 }

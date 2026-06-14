@@ -1,13 +1,16 @@
-import { type Exp, ExpKind } from "../exp"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import { type Exp, ExpKind } from "../exp";
 
 export function isNullable(exp: Exp): boolean {
-  console.assert(exp != null)
+  console.assert(exp != null);
   switch (exp.kind) {
     case ExpKind.Call:
-      return false
+      return false;
     case ExpKind.RuleInclude: {
-      const cs = exp.children()
-      return cs.length > 0 ? isNullable(cs[0]) : false
+      const cs = exp.children();
+      return cs.length > 0 ? isNullable(cs[0]) : false;
     }
     case ExpKind.Group:
     case ExpKind.SkipGroup:
@@ -18,30 +21,30 @@ export function isNullable(exp: Exp): boolean {
     case ExpKind.Named:
     case ExpKind.NamedList:
     case ExpKind.Alt:
-      return isNullable(unboxExp(exp))
+      return isNullable(unboxExp(exp));
     case ExpKind.Optional:
-      return true
+      return true;
     case ExpKind.Closure:
-      return true
+      return true;
     case ExpKind.PositiveClosure:
-      return isNullable(unboxExp(exp))
+      return isNullable(unboxExp(exp));
     case ExpKind.Join:
     case ExpKind.Gather:
-      return true
+      return true;
     case ExpKind.PositiveJoin:
     case ExpKind.PositiveGather:
-      return isNullable(unboxExp(exp))
+      return isNullable(unboxExp(exp));
     case ExpKind.Choice: {
       for (const opt of exp.children()) {
-        if (isNullable(opt)) return true
+        if (isNullable(opt)) return true;
       }
-      return false
+      return false;
     }
     case ExpKind.Sequence: {
       for (const item of exp.children()) {
-        if (!isNullable(item)) return false
+        if (!isNullable(item)) return false;
       }
-      return true
+      return true;
     }
     case ExpKind.Eol:
     case ExpKind.Void:
@@ -50,7 +53,7 @@ export function isNullable(exp: Exp): boolean {
     case ExpKind.Cut:
     case ExpKind.Constant:
     case ExpKind.Alert:
-      return true
+      return true;
     case ExpKind.Token:
     case ExpKind.Pattern:
     case ExpKind.Dot:
@@ -62,9 +65,9 @@ export function isNullable(exp: Exp): boolean {
     case ExpKind.UIntMeta:
     case ExpKind.FloatMeta:
     case ExpKind.BoolMeta:
-      return false
+      return false;
     default:
-      throw new Error(`isNullable: unhandled ExpKind ${exp.kind}`)
+      throw new Error(`isNullable: unhandled ExpKind ${exp.kind}`);
   }
 }
 
@@ -87,10 +90,10 @@ export function unboxExp(exp: Exp): Exp {
     case ExpKind.PositiveJoin:
     case ExpKind.Gather:
     case ExpKind.PositiveGather: {
-      const cs = exp.children()
-      return cs[0]
+      const cs = exp.children();
+      return cs[0];
     }
     default:
-      throw new Error(`unboxExp: unhandled ExpKind ${exp.kind}`)
+      throw new Error(`unboxExp: unhandled ExpKind ${exp.kind}`);
   }
 }

@@ -1,13 +1,16 @@
-import type { Ctx } from "@context"
-import { NodeTree, type TreeValue, treeFold } from "@trees"
-import { asjson } from "../util/asjson"
-import { computeLA } from "./analysis/lookahead"
-import { BoxExp, type Exp, ExpKind } from "./exp.js"
-import { serializeRule } from "./json"
-import { optimizeExp } from "./optimize.js"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import type { Ctx } from "@context";
+import { NodeTree, type TreeValue, treeFold } from "@trees";
+import { asjson } from "../util/asjson";
+import { computeLA } from "./analysis/lookahead";
+import { BoxExp, type Exp, ExpKind } from "./exp.js";
+import { serializeRule } from "./json";
+import { optimizeExp } from "./optimize.js";
 
 export class Rule extends BoxExp {
-  readonly kind = ExpKind.Rule
+  readonly kind = ExpKind.Rule;
   constructor(
     public name: string,
     public exp: Exp,
@@ -22,57 +25,57 @@ export class Rule extends BoxExp {
     public isMemo: boolean = false,
     public isLrec: boolean = false,
   ) {
-    super(exp)
+    super(exp);
   }
 
   computeLA() {
-    computeLA(this.exp)
+    computeLA(this.exp);
   }
 
   parse(ctx: Ctx): TreeValue {
-    const tree = this.exp.parse(ctx)
-    const folded = treeFold(tree)
+    const tree = this.exp.parse(ctx);
+    const folded = treeFold(tree);
 
     const [newTree, overridden] = ctx.applySemantics(
       folded,
       this.name,
       this.params,
-    )
+    );
     if (overridden) {
-      return newTree
+      return newTree;
     }
 
     if (this.params.length === 0 || this.params[0] === "bool") {
-      return folded
+      return folded;
     }
 
-    return new NodeTree(this.params[0], folded)
+    return new NodeTree(this.params[0], folded);
   }
 
   override __json__(seen?: Set<object>): any {
-    return asjson(serializeRule(this), seen)
+    return asjson(serializeRule(this), seen);
   }
 
   isToken(): boolean {
-    if (this.isTokn) return true
-    const first = this.name.replace(/^_+/, "")[0]
+    if (this.isTokn) return true;
+    const first = this.name.replace(/^_+/, "")[0];
     return (
       first !== "" &&
       first === first.toUpperCase() &&
       first !== first.toLowerCase()
-    )
+    );
   }
 
   isLeftRecursive(): boolean {
-    return this.isLrec
+    return this.isLrec;
   }
 
   isMemoizable(): boolean {
-    return this.isLrec || (this.isMemo && !this.noMemo)
+    return this.isLrec || (this.isMemo && !this.noMemo);
   }
 
   shouldTrace(): boolean {
-    return !this.noStak
+    return !this.noStak;
   }
 
   normalize(): void {
@@ -93,6 +96,6 @@ export class Rule extends BoxExp {
       this.noStak,
       this.isMemo,
       this.isLrec,
-    )
+    );
   }
 }

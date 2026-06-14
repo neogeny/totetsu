@@ -1,6 +1,9 @@
-import { asjsons } from "@util/asjson"
-import type { CallExp } from "../call"
-import { LinkError } from "../error"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import { asjsons } from "@util/asjson";
+import type { CallExp } from "../call";
+import { LinkError } from "../error";
 import {
   type BoxExp,
   type ChoiceExp,
@@ -9,34 +12,34 @@ import {
   type RuleIncludeExp,
   type SepBoxExp,
   type SeqExp,
-} from "../exp"
-import type { Grammar } from "../grammar"
-import type { Rule } from "../rule"
+} from "../exp";
+import type { Grammar } from "../grammar";
+import type { Rule } from "../rule";
 
 export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
-  if (exp == null) return
+  if (exp == null) return;
   switch (exp.kind) {
     case ExpKind.Call: {
-      const call = exp as CallExp
-      const rule = rules.get(call.name)
+      const call = exp as CallExp;
+      const rule = rules.get(call.name);
       if (!rule) {
         throw new LinkError(
           `call to undefined rule: ${call.name}\n${asjsons(rules)}
             `,
-        )
+        );
       }
-      call.rule = rule
-      return
+      call.rule = rule;
+      return;
     }
     case ExpKind.RuleInclude: {
-      const ri = exp as RuleIncludeExp
-      const rule = rules.get(ri.name)
+      const ri = exp as RuleIncludeExp;
+      const rule = rules.get(ri.name);
       if (!rule)
         throw new LinkError(
           `rule include references undefined rule: ${ri.name}`,
-        )
-      ri.exp = rule.exp
-      return
+        );
+      ri.exp = rule.exp;
+      return;
     }
     // Leaves — nothing to link
     case ExpKind.Nil:
@@ -56,7 +59,7 @@ export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
     case ExpKind.UIntMeta:
     case ExpKind.FloatMeta:
     case ExpKind.BoolMeta:
-      return
+      return;
     // Unary — recurse into child
     case ExpKind.Named:
     case ExpKind.NamedList:
@@ -71,44 +74,44 @@ export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
     case ExpKind.Optional:
     case ExpKind.Closure:
     case ExpKind.PositiveClosure: {
-      const box = exp as BoxExp
-      linkExp(box.exp, rules)
-      return
+      const box = exp as BoxExp;
+      linkExp(box.exp, rules);
+      return;
     }
     // Binary — recurse into both
     case ExpKind.Join:
     case ExpKind.PositiveJoin:
     case ExpKind.Gather:
     case ExpKind.PositiveGather: {
-      const box = exp as SepBoxExp
-      linkExp(box.exp, rules)
-      linkExp(box.sep, rules)
-      return
+      const box = exp as SepBoxExp;
+      linkExp(box.exp, rules);
+      linkExp(box.sep, rules);
+      return;
     }
     // Collection — recurse into all
     case ExpKind.Sequence:
       for (const item of (exp as SeqExp).sequence) {
-        linkExp(item, rules)
+        linkExp(item, rules);
       }
-      return
+      return;
     case ExpKind.Choice: {
       for (const opt of (exp as ChoiceExp).options) {
-        linkExp(opt, rules)
+        linkExp(opt, rules);
       }
-      return
+      return;
     }
     default:
-      throw new Error(`unhandled ExpKind: ${exp.kind}`)
+      throw new Error(`unhandled ExpKind: ${exp.kind}`);
   }
 }
 
 export function linkRule(rule: Rule, rules: Map<string, Rule>): void {
-  linkExp(rule.exp, rules)
+  linkExp(rule.exp, rules);
 }
 
 export function linkGrammar(grammar: Grammar): void {
-  const rulemap = grammar.ruleMap()
+  const rulemap = grammar.ruleMap();
   for (const rule of grammar.rules) {
-    linkRule(rule, rulemap)
+    linkRule(rule, rulemap);
   }
 }

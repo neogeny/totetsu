@@ -1,49 +1,52 @@
-import assert from "node:assert/strict"
-import { describe, it } from "node:test"
-import { ApiError, compile, parse, parseInput } from "@api"
-import { asjson } from "@util/asjson"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { ApiError, compile, parse, parseInput } from "@api";
+import { asjson } from "@util/asjson";
 
 describe("sanity", () => {
   it("simple grammar compile and parse", () => {
     const grammar = `@@grammar :: Test
-start = 'hello' $ ;`
-    const result = parse(grammar, "hello")
-    assert.equal(asjson(result), "hello")
-  })
+start = 'hello' $ ;`;
+    const result = parse(grammar, "hello");
+    assert.equal(asjson(result), "hello");
+  });
 
   it("parse fails on invalid input", () => {
     const grammar = `@@grammar :: Test
-start = 'hello' $ ;`
-    assert.throws(() => parse(grammar, "world"), ApiError)
-  })
+start = 'hello' $ ;`;
+    assert.throws(() => parse(grammar, "world"), ApiError);
+  });
 
   it("two-step compile + parseInput", () => {
     const grammar = `@@grammar :: Test
-start = 'hello' 'world' $ ;`
-    const parser = compile(grammar)
-    const result = parseInput(parser, "helloworld")
-    assert.deepStrictEqual(asjson(result), ["hello", "world"])
-  })
+start = 'hello' 'world' $ ;`;
+    const parser = compile(grammar);
+    const result = parseInput(parser, "helloworld");
+    assert.deepStrictEqual(asjson(result), ["hello", "world"]);
+  });
 
   it("rule with : separator", () => {
     const grammar = `@@grammar :: Test
-start: 'hello' $ ;`
-    const result = parse(grammar, "hello")
-    assert.equal(asjson(result), "hello")
-  })
+start: 'hello' $ ;`;
+    const result = parse(grammar, "hello");
+    assert.equal(asjson(result), "hello");
+  });
 
   it("directive without space before value", () => {
     const g = `@@grammar :: Test
 @@whitespace :: None
-start = 'hello' $ ;`
-    const result = parse(g, "hello")
-    assert.equal(asjson(result), "hello")
-  })
+start = 'hello' $ ;`;
+    const result = parse(g, "hello");
+    assert.equal(asjson(result), "hello");
+  });
 
   it("::= separator", () => {
     const g = `@@grammar :: Test
-start ::= 'hello' $ ;`
-    const result = parse(g, "hello")
-    assert.equal(asjson(result), "hello")
-  })
-})
+start ::= 'hello' $ ;`;
+    const result = parse(g, "hello");
+    assert.equal(asjson(result), "hello");
+  });
+});

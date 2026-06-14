@@ -1,4 +1,7 @@
-import type { CallExp } from "../call"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import type { CallExp } from "../call";
 import {
   type AlertExp,
   type ConstantExp,
@@ -7,31 +10,31 @@ import {
   type PatternExp,
   type SeqExp,
   type TokenExp,
-} from "../exp"
-import { isNullable, unboxExp } from "./nullability"
+} from "../exp";
+import { isNullable, unboxExp } from "./nullability";
 
-const sentinelEOF = "\uFF04"
+const sentinelEOF = "\uFF04";
 
 export function computeLA(exp: Exp): string[] {
-  if (exp.la.length > 0) return exp.la
-  let la: string[]
+  if (exp.la.length > 0) return exp.la;
+  let la: string[];
 
   switch (exp.kind) {
     case ExpKind.Token:
-      la = [`'${(exp as TokenExp).value}'`]
-      break
+      la = [`'${(exp as TokenExp).value}'`];
+      break;
     case ExpKind.Pattern:
-      la = [`/${(exp as PatternExp).value}/`]
-      break
+      la = [`/${(exp as PatternExp).value}/`];
+      break;
     case ExpKind.Constant:
-      la = [String((exp as ConstantExp).value)]
-      break
+      la = [String((exp as ConstantExp).value)];
+      break;
     case ExpKind.Alert:
-      la = [`^\`${(exp as AlertExp).value}\``]
-      break
+      la = [`^\`${(exp as AlertExp).value}\``];
+      break;
     case ExpKind.Eof:
-      la = [sentinelEOF]
-      break
+      la = [sentinelEOF];
+      break;
 
     case ExpKind.Group:
     case ExpKind.SkipGroup:
@@ -50,73 +53,73 @@ export function computeLA(exp: Exp): string[] {
     case ExpKind.PositiveJoin:
     case ExpKind.Gather:
     case ExpKind.PositiveGather:
-      la = computeLA(unboxExp(exp))
-      break
+      la = computeLA(unboxExp(exp));
+      break;
 
     case ExpKind.Sequence: {
-      la = []
+      la = [];
       for (const item of (exp as SeqExp).sequence) {
-        if (item.kind === ExpKind.Cut) continue
-        la = mergeLA(la, computeLA(item))
-        if (!isNullable(item)) break
+        if (item.kind === ExpKind.Cut) continue;
+        la = mergeLA(la, computeLA(item));
+        if (!isNullable(item)) break;
       }
-      break
+      break;
     }
 
     case ExpKind.Choice: {
-      la = []
+      la = [];
       for (const child of exp.children()) {
-        la = mergeLA(la, computeLA(child))
+        la = mergeLA(la, computeLA(child));
       }
-      break
+      break;
     }
 
     case ExpKind.Call: {
-      const call = exp as unknown as CallExp
-      la = call.rule ? [`\u2192${call.name}`] : []
-      break
+      const call = exp as unknown as CallExp;
+      la = call.rule ? [`\u2192${call.name}`] : [];
+      break;
     }
 
     case ExpKind.RuleInclude: {
-      const cs = exp.children()
-      la = cs.length > 0 ? computeLA(cs[0]) : []
-      break
+      const cs = exp.children();
+      la = cs.length > 0 ? computeLA(cs[0]) : [];
+      break;
     }
 
     case ExpKind.NameMeta:
-      la = ["@name"]
-      break
+      la = ["@name"];
+      break;
     case ExpKind.IntMeta:
-      la = ["@int"]
-      break
+      la = ["@int"];
+      break;
     case ExpKind.UIntMeta:
-      la = ["@uint"]
-      break
+      la = ["@uint"];
+      break;
     case ExpKind.FloatMeta:
-      la = ["@float"]
-      break
+      la = ["@float"];
+      break;
     case ExpKind.BoolMeta:
-      la = ["@bool"]
-      break
+      la = ["@bool"];
+      break;
 
     default:
-      la = []
-      break
+      la = [];
+      break;
   }
 
-  exp.la = la
-  return la
+  exp.la = la;
+  return la;
 }
 
 function mergeLA(a: string[], b: string[]): string[] {
-  if (a.length === 0) return b
-  if (b.length === 0) return a
-  const seen = new Set(a)
+  if (a.length === 0) return b;
+  if (b.length === 0) return a;
+  const seen = new Set(a);
   for (const s of b) {
     if (!seen.has(s)) {
-      seen.add(s)
-      a.push(s)
+      seen.add(s);
+      a.push(s);
     }
   }
-  return a.sort()
+  return a.sort();
 }
