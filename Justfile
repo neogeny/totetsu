@@ -1,5 +1,7 @@
-# Set the shell to bash and enable 'pipefail' to catch errors early
+# Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+# SPDX-License-Identifier: Apache-2.0
 
+# Set the shell to bash and enable 'pipefail' to catch errors early
 set shell := ["bash", "-uc"]
 
 dist := "./dist/"
@@ -76,9 +78,9 @@ py-doc:
     tsemekwes.tree
 
 py-build: build
-    uvx hatch build --no-hooks
+    uv build
 
-py-test: py-build
+py-test: build
     uv run pytest -vv
 
 py-publish-test: py-build
