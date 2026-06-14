@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+# SPDX-License-Identifier: Apache-2.0
+
 """Tests for grammar parsing — mirrors src/__tests__/bootstrap.test.ts.
 
 Adjusted for the actual Python API surface.

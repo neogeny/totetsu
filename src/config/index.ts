@@ -1,2 +1,5 @@
-export * from "./config"
-export * from "./globals"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+export * from "./config";
+export * from "./globals";

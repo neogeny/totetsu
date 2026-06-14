@@ -1,30 +1,33 @@
-import { bootGrammar } from "@json"
-import { grammarSummary } from "@peg"
-import { asjsons } from "@util/asjson"
-import type { BundledLanguage } from "shiki"
-import type { OutputSet } from "./lib"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import { bootGrammar } from "@json";
+import { grammarSummary } from "@peg";
+import { asjsons } from "@util/asjson";
+import type { BundledLanguage } from "shiki";
+import type { OutputSet } from "./lib";
 
 export async function cmdBoot(options: {
-  json?: boolean
-  pretty?: boolean
-  colorize?: boolean
-  output?: string
-  quiet?: boolean
+  json?: boolean;
+  pretty?: boolean;
+  colorize?: boolean;
+  output?: string;
+  quiet?: boolean;
 }): Promise<OutputSet> {
-  const g = bootGrammar()
+  const g = bootGrammar();
 
-  let payload: string
-  let lang: BundledLanguage
+  let payload: string;
+  let lang: BundledLanguage;
   if (options.json) {
-    payload = asjsons(g)
-    lang = "json" as BundledLanguage
+    payload = asjsons(g);
+    lang = "json" as BundledLanguage;
   } else if (options.pretty) {
-    payload = g.pretty()
-    lang = "asciidoc"
+    payload = g.pretty();
+    lang = "asciidoc";
   } else {
-    payload = grammarSummary(g, options.colorize)
-    lang = "json" as BundledLanguage
+    payload = grammarSummary(g, options.colorize);
+    lang = "json" as BundledLanguage;
   }
 
-  return { lang, outputs: [{ name: "boot", payload }] }
+  return { lang, outputs: [{ name: "boot", payload }] };
 }

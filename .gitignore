@@ -27,6 +27,7 @@ bin/tsemekwes
 *.njsproj
 *.sln
 *.sw?
+.cache
 
 # Documentation
 .vale/

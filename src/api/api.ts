@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
 import { gzipSync } from "node:zlib";
 import { type Cfg, defaultCfg } from "@config";
 import {
@@ -40,9 +43,9 @@ export function parseGrammar(grammar: string, cfg?: Cfg): TreeValue {
     }
     if (isParseFailure(error)) {
       const failure = error as ParseFailure;
-      const apierror = new ApiError(failure.memento.render())
+      const apierror = new ApiError(failure.memento.render());
       if (Error.captureStackTrace) {
-            Error.captureStackTrace(apierror, parseGrammar);
+        Error.captureStackTrace(apierror, parseGrammar);
       }
       throw error;
     }
@@ -90,9 +93,9 @@ export function parseInput(
       failure = ctx.furthestFailure();
     }
     if (failure !== null) {
-      const error = new ApiError(failure.memento.render())
+      const error = new ApiError(failure.memento.render());
       if (Error.captureStackTrace) {
-            Error.captureStackTrace(error, parseInput)
+        Error.captureStackTrace(error, parseInput);
       }
       throw error;
     }

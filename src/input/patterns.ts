@@ -1,11 +1,14 @@
-import type { Cfg } from "@config"
-import XRegExp from "xregexp"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import type { Cfg } from "@config";
+import XRegExp from "xregexp";
 
 function compileRe(pattern: string, extraFlags?: string): RegExp | null {
   try {
-    return XRegExp(pattern, extraFlags ?? "")
+    return XRegExp(pattern, extraFlags ?? "");
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -23,62 +26,62 @@ export function newPatterns(
   cmt: string,
   eol: string,
 ): TokenizingPatterns {
-  return new TokenizingPatterns(compileRe(wsp), compileRe(cmt), compileRe(eol))
+  return new TokenizingPatterns(compileRe(wsp), compileRe(cmt), compileRe(eol));
 }
 
 export function defaultPatterns(): TokenizingPatterns {
-  const pat = newPatterns("\\s+", "[^\\s\\S]", "[^\\s\\S]")
-  pat.nonDefault = false
-  return pat
+  const pat = newPatterns("\\s+", "[^\\s\\S]", "[^\\s\\S]");
+  pat.nonDefault = false;
+  return pat;
 }
 
 export function configurePatterns(
   patterns: TokenizingPatterns,
   cfg: Cfg,
 ): void {
-  patterns.nonDefault = false
+  patterns.nonDefault = false;
 
   if (cfg.whitespace !== undefined) {
-    patterns.nonDefault = true
+    patterns.nonDefault = true;
     if (cfg.whitespace !== null && cfg.whitespace !== "") {
-      const re = compileRe(cfg.whitespace)
+      const re = compileRe(cfg.whitespace);
       if (re !== null) {
-        patterns.wsp = re
+        patterns.wsp = re;
       }
     } else {
-      patterns.wsp = null
+      patterns.wsp = null;
     }
   }
 
   if (cfg.comments !== undefined) {
-    patterns.nonDefault = true
+    patterns.nonDefault = true;
     if (cfg.comments !== null) {
-      const re = compileRe(cfg.comments)
+      const re = compileRe(cfg.comments);
       if (re !== null) {
-        patterns.cmt = re
+        patterns.cmt = re;
       }
     } else {
-      patterns.cmt = null
+      patterns.cmt = null;
     }
   }
 
   if (cfg.eolComments !== undefined) {
-    patterns.nonDefault = true
+    patterns.nonDefault = true;
     if (cfg.eolComments !== null) {
-      const re = compileRe(cfg.eolComments)
+      const re = compileRe(cfg.eolComments);
       if (re !== null) {
-        patterns.eol = re
+        patterns.eol = re;
       }
     } else {
-      patterns.eol = null
+      patterns.eol = null;
     }
   }
 }
 
-const _default = defaultPatterns()
+const _default = defaultPatterns();
 export function resetPatterns(patterns: TokenizingPatterns): void {
-  patterns.wsp = _default.wsp
-  patterns.cmt = _default.cmt
-  patterns.eol = _default.eol
-  patterns.nonDefault = false
+  patterns.wsp = _default.wsp;
+  patterns.cmt = _default.cmt;
+  patterns.eol = _default.eol;
+  patterns.nonDefault = false;
 }

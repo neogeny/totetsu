@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
 export function cmdInfo(): void {
   const features = [
     ["API function", "Status", "Depends on"],
@@ -10,10 +13,10 @@ export function cmdInfo(): void {
     ["parse", "done", "compile + parseInput"],
     ["grammarToJSON", "stub", "Grammar.toJSON()"],
     ["grammarPretty", "done", "Grammar.pretty()"],
-  ]
-  console.log("TS\u2019emekwes v0.0.0 \u2014 Feature Status\n")
+  ];
+  console.log("TS\u2019emekwes v0.0.0 \u2014 Feature Status\n");
   for (const row of features) {
-    console.log(`  ${row[0].padEnd(25)} ${row[1].padEnd(12)} ${row[2]}`)
+    console.log(`  ${row[0].padEnd(25)} ${row[1].padEnd(12)} ${row[2]}`);
   }
-  console.log("\nUse `emekwes <command> --help` for command details.")
+  console.log("\nUse `emekwes <command> --help` for command details.");
 }

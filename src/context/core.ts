@@ -1,308 +1,311 @@
-import { type Cfg, defaultCfg } from "@config"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import { type Cfg, defaultCfg } from "@config";
 import {
   ConsoleTracer,
   type MemoValue,
   NullTracer,
   ParseError,
   type Tracer,
-} from "@context"
-import type { Cursor } from "@input"
-import type { TreeValue } from "@trees"
-import { DeadHeart, type Heart } from "@util/heartbeat"
-import type Ctx from "./ctx"
-import type { CallStack } from "./ctx"
-import { ParseFailure } from "./error"
-import { type Memo, type MemoKey, pruneMemoCache } from "./memo"
+} from "@context";
+import type { Cursor } from "@input";
+import type { TreeValue } from "@trees";
+import { DeadHeart, type Heart } from "@util/heartbeat";
+import type Ctx from "./ctx";
+import type { CallStack } from "./ctx";
+import { ParseFailure } from "./error";
+import { type Memo, type MemoKey, pruneMemoCache } from "./memo";
 
 export function newCtx(cursor: Cursor, cfg?: Cfg): CoreCtx {
-  return new CoreCtx(cursor, cfg)
+  return new CoreCtx(cursor, cfg);
 }
 export class CoreCtx implements Ctx {
-  private readonly _cursor: Cursor
-  private _callStack: CallStack = []
-  private cutStack: boolean[] = [false]
-  private recursionKey: MemoKey | null = null
-  private recursionDepth = 0
-  private lookaheadDepth = 0
-  private lastCutMark = 0
-  private furthest: ParseFailure | null = null
+  private readonly _cursor: Cursor;
+  private _callStack: CallStack = [];
+  private cutStack: boolean[] = [false];
+  private recursionKey: MemoKey | null = null;
+  private recursionDepth = 0;
+  private lookaheadDepth = 0;
+  private lastCutMark = 0;
+  private furthest: ParseFailure | null = null;
 
-  private _cfg: Cfg
-  private memoCache = new Map<string, Memo>()
-  private _tracer: Tracer = new NullTracer()
-  private keywords = new Set<string>()
-  private _heart: Heart = new DeadHeart()
-  private _lastHeartbeat = 0
+  private _cfg: Cfg;
+  private memoCache = new Map<string, Memo>();
+  private _tracer: Tracer = new NullTracer();
+  private keywords = new Set<string>();
+  private _heart: Heart = new DeadHeart();
+  private _lastHeartbeat = 0;
 
   constructor(cursor: Cursor, cfg?: Cfg) {
-    this._cursor = cursor
-    this._cfg = cfg ? defaultCfg().merge(cfg) : defaultCfg()
-    this._cursor.configure(this._cfg)
+    this._cursor = cursor;
+    this._cfg = cfg ? defaultCfg().merge(cfg) : defaultCfg();
+    this._cursor.configure(this._cfg);
   }
 
   cfg(): Cfg {
-    return this._cfg
+    return this._cfg;
   }
 
   configure(cfg: Cfg): void {
-    this._cfg = this._cfg.merge(cfg)
-    this._cursor.configure(cfg)
-    this.setKeywords(cfg.keywords ?? [])
+    this._cfg = this._cfg.merge(cfg);
+    this._cursor.configure(cfg);
+    this.setKeywords(cfg.keywords ?? []);
     if (cfg.trace) {
-      this._tracer = new ConsoleTracer()
+      this._tracer = new ConsoleTracer();
     } else {
-      this._tracer = new NullTracer()
+      this._tracer = new NullTracer();
     }
     if (cfg.heart) {
-      this._heart = cfg.heart
+      this._heart = cfg.heart;
     }
   }
 
   private setKeywords(kws: string[]): void {
-    this.keywords = new Set(kws)
+    this.keywords = new Set(kws);
   }
 
   cursor(): Cursor {
-    return this._cursor
+    return this._cursor;
   }
   callStack(): CallStack {
-    return [...this._callStack]
+    return [...this._callStack];
   }
   tracer(): Tracer {
-    return this._tracer
+    return this._tracer;
   }
   mark(): number {
-    return this._cursor.mark()
+    return this._cursor.mark();
   }
   reset(mark: number): void {
-    this._cursor.reset(mark)
+    this._cursor.reset(mark);
   }
   atEnd(): boolean {
-    return this._cursor.atEnd()
+    return this._cursor.atEnd();
   }
 
   peek(): [string, boolean] {
-    return this._cursor.peek()
+    return this._cursor.peek();
   }
 
   matchDot(): [string, boolean] {
-    const mark = this._cursor.mark()
-    const [ch, ok] = this._cursor.next()
+    const mark = this._cursor.mark();
+    const [ch, ok] = this._cursor.next();
     if (!ok) {
-      throw this.failure(mark, new ParseError("expected any character"))
+      throw this.failure(mark, new ParseError("expected any character"));
     }
-    return [ch, true]
+    return [ch, true];
   }
 
   nextToken(): void {
-    this._cursor.nextToken()
-    this.heartbeat()
+    this._cursor.nextToken();
+    this.heartbeat();
   }
 
   matchToken(token: string): string {
-    this.nextToken()
-    const start = this.mark()
-    const [slice, ok] = this._cursor.matchToken(token)
+    this.nextToken();
+    const start = this.mark();
+    const [slice, ok] = this._cursor.matchToken(token);
     if (ok) {
-      this._tracer.traceMatch(this, token, slice)
-      return slice
+      this._tracer.traceMatch(this, token, slice);
+      return slice;
     }
-    this.reset(start)
-    this._tracer.traceNoMatch(this, "", token)
-    throw this.failure(start, new ParseError(`expected: "${token}"`))
+    this.reset(start);
+    this._tracer.traceNoMatch(this, "", token);
+    throw this.failure(start, new ParseError(`expected: "${token}"`));
   }
 
   matchPattern(pattern: string): string {
     // let view = pattern.replace(/\//g, "\\/")
-    let view = pattern
-    view = `${view.slice(0, 16)}...`.slice(0, view.length)
+    let view = pattern;
+    view = `${view.slice(0, 16)}...`.slice(0, view.length);
 
-    const mark = this._cursor.mark()
-    const [slice, ok] = this._cursor.matchPattern(pattern)
+    const mark = this._cursor.mark();
+    const [slice, ok] = this._cursor.matchPattern(pattern);
     if (ok) {
-      this._tracer.traceMatch(this, view, slice)
-      return slice
+      this._tracer.traceMatch(this, view, slice);
+      return slice;
     }
-    this._tracer.traceNoMatch(this, view, slice)
-    const p = this._cursor.getPattern(pattern)
-    throw this.failure(mark, new ParseError(`expected pattern ${p}`))
+    this._tracer.traceNoMatch(this, view, slice);
+    const p = this._cursor.getPattern(pattern);
+    throw this.failure(mark, new ParseError(`expected pattern ${p}`));
   }
 
   matchVoid(): void {
-    this.nextToken()
+    this.nextToken();
   }
   inLookahead(): boolean {
-    return this.lookaheadDepth > 0
+    return this.lookaheadDepth > 0;
   }
   enterLookahead(): void {
-    this.lookaheadDepth++
+    this.lookaheadDepth++;
   }
   leaveLookahead(): void {
-    this.lookaheadDepth--
+    this.lookaheadDepth--;
   }
 
   matchFail(): ParseFailure {
-    throw this.failure(this._cursor.mark(), new ParseError("fail"))
+    throw this.failure(this._cursor.mark(), new ParseError("fail"));
   }
 
   eof(): boolean {
-    return this._cursor.atEnd()
+    return this._cursor.atEnd();
   }
 
   matchEOF(): null {
-    const mark = this._cursor.mark()
-    this.nextToken()
+    const mark = this._cursor.mark();
+    this.nextToken();
     if (!this._cursor.atEnd()) {
-      this.reset(mark)
-      throw this.failure(mark, new ParseError("expected end of text"))
+      this.reset(mark);
+      throw this.failure(mark, new ParseError("expected end of text"));
     }
-    return null
+    return null;
   }
 
   matchEOL(): null {
-    const mark = this._cursor.mark()
+    const mark = this._cursor.mark();
     if (!this._cursor.matchEOL()) {
-      this.reset(mark)
-      throw this.failure(mark, new ParseError("expected end of line"))
+      this.reset(mark);
+      throw this.failure(mark, new ParseError("expected end of line"));
     }
-    return null
+    return null;
   }
 
   matchName(): string | null {
-    const start = this.mark()
-    this.nextToken()
-    const slice = this._cursor.matchName()
+    const start = this.mark();
+    this.nextToken();
+    const slice = this._cursor.matchName();
     if (slice === null) {
-      this.reset(start)
-      this._tracer.traceNoMatch(this, "@name", "")
-      throw this.failure(start, new ParseError("expected @name"))
+      this.reset(start);
+      this._tracer.traceNoMatch(this, "@name", "");
+      throw this.failure(start, new ParseError("expected @name"));
     }
-    this._tracer.traceMatch(this, "@name", slice)
-    return slice
+    this._tracer.traceMatch(this, "@name", slice);
+    return slice;
   }
 
   matchInt(): number | null {
-    const start = this.mark()
-    this.nextToken()
-    const slice = this._cursor.matchInt()
+    const start = this.mark();
+    this.nextToken();
+    const slice = this._cursor.matchInt();
     if (slice === null) {
-      this.reset(start)
-      this._tracer.traceNoMatch(this, "@int", "")
-      throw this.failure(start, new ParseError("expected @int"))
+      this.reset(start);
+      this._tracer.traceNoMatch(this, "@int", "");
+      throw this.failure(start, new ParseError("expected @int"));
     }
-    this._tracer.traceMatch(this, "@int", slice.toString())
-    return slice
+    this._tracer.traceMatch(this, "@int", slice.toString());
+    return slice;
   }
 
   matchUInt(): number | null {
-    const start = this.mark()
-    this.nextToken()
-    const slice = this._cursor.matchUInt()
+    const start = this.mark();
+    this.nextToken();
+    const slice = this._cursor.matchUInt();
     if (slice === null) {
-      this.reset(start)
-      this._tracer.traceNoMatch(this, "@uint", "")
-      throw this.failure(start, new ParseError("expected @uint"))
+      this.reset(start);
+      this._tracer.traceNoMatch(this, "@uint", "");
+      throw this.failure(start, new ParseError("expected @uint"));
     }
-    this._tracer.traceMatch(this, "@uint", slice.toString())
-    return slice
+    this._tracer.traceMatch(this, "@uint", slice.toString());
+    return slice;
   }
 
   matchFloat(): number | null {
-    const start = this.mark()
-    this.nextToken()
-    const slice = this._cursor.matchFloat()
+    const start = this.mark();
+    this.nextToken();
+    const slice = this._cursor.matchFloat();
     if (slice === null) {
-      this.reset(start)
-      this._tracer.traceNoMatch(this, "@float", "")
-      throw this.failure(start, new ParseError("expected @float"))
+      this.reset(start);
+      this._tracer.traceNoMatch(this, "@float", "");
+      throw this.failure(start, new ParseError("expected @float"));
     }
-    this._tracer.traceMatch(this, "@float", slice.toString())
-    return slice
+    this._tracer.traceMatch(this, "@float", slice.toString());
+    return slice;
   }
 
   matchBool(): boolean | null {
-    const start = this.mark()
-    this.nextToken()
-    const slice = this._cursor.matchBool()
+    const start = this.mark();
+    this.nextToken();
+    const slice = this._cursor.matchBool();
     if (slice === null) {
-      this.reset(start)
-      this._tracer.traceNoMatch(this, "@bool", "")
-      throw this.failure(start, new ParseError("expected @bool"))
+      this.reset(start);
+      this._tracer.traceNoMatch(this, "@bool", "");
+      throw this.failure(start, new ParseError("expected @bool"));
     }
-    this._tracer.traceMatch(this, "@bool", slice.toString())
-    return slice
+    this._tracer.traceMatch(this, "@bool", slice.toString());
+    return slice;
   }
 
   matchConstant(literal: string): TreeValue {
-    return literal
+    return literal;
   }
 
   enter(name: string): void {
-    this._callStack.push(name)
+    this._callStack.push(name);
   }
 
   leave(): void {
     if (this._callStack.length > 0) {
-      this._callStack.pop()
+      this._callStack.pop();
     }
   }
 
   failure(start: number, cause: ParseError): ParseFailure {
-    this._cursor.reset(start)
-    const err = new ParseFailure(this, start, cause)
+    this._cursor.reset(start);
+    const err = new ParseFailure(this, start, cause);
     if (this.furthest === null || this.furthest.mark <= this._cursor.mark()) {
-      this.setFurthestFailure(err)
+      this.setFurthestFailure(err);
     }
-    return err
+    return err;
   }
 
   furthestFailure(): ParseFailure | null {
-    return this.furthest
+    return this.furthest;
   }
 
   setFurthestFailure(failure: ParseFailure): void {
-    this.furthest = failure
+    this.furthest = failure;
   }
 
   isKeyword(name: string): boolean {
-    return this.keywords.has(name)
+    return this.keywords.has(name);
   }
 
   intern(s: string): string {
-    return s
+    return s;
   }
 
   heartbeat(): void {
-    const hb = this._heart
-    if (hb instanceof DeadHeart) return
+    const hb = this._heart;
+    if (hb instanceof DeadHeart) return;
 
-    const now = Date.now()
-    if (now - this._lastHeartbeat < 128) return
-    this._lastHeartbeat = now
+    const now = Date.now();
+    if (now - this._lastHeartbeat < 128) return;
+    this._lastHeartbeat = now;
 
-    const mark = this._cursor.mark()
-    const total = this._cursor.len()
-    hb.heartbeat(mark, total)
+    const mark = this._cursor.mark();
+    const total = this._cursor.len();
+    hb.heartbeat(mark, total);
   }
 
   key(name: string, canMemo: boolean): MemoKey {
-    return { mark: this._cursor.mark(), name, canMemo }
+    return { mark: this._cursor.mark(), name, canMemo };
   }
 
   memo(key: MemoKey): Memo | undefined {
-    if (!key.canMemo) return undefined
-    const k = `${key.mark}:${key.name}`
-    return this.memoCache.get(k)
+    if (!key.canMemo) return undefined;
+    const k = `${key.mark}:${key.name}`;
+    return this.memoCache.get(k);
   }
 
   memoize(key: MemoKey, value: MemoValue, mark: number): void {
-    if (!key.canMemo) return
-    const k = `${key.mark}:${key.name}`
-    this.memoCache.set(k, { value, mark })
+    if (!key.canMemo) return;
+    const k = `${key.mark}:${key.name}`;
+    this.memoCache.set(k, { value, mark });
   }
 
   recursionDepthExceeded(): boolean {
-    return this.recursionDepth >= 64
+    return this.recursionDepth >= 64;
   }
 
   track(key: MemoKey): void {
@@ -311,10 +314,10 @@ export class CoreCtx implements Ctx {
       this.recursionKey.mark === key.mark &&
       this.recursionKey.name === key.name
     ) {
-      this.recursionDepth++
+      this.recursionDepth++;
     } else {
-      this.recursionKey = key
-      this.recursionDepth = 1
+      this.recursionKey = key;
+      this.recursionDepth = 1;
     }
   }
 
@@ -324,38 +327,38 @@ export class CoreCtx implements Ctx {
       this.recursionKey.mark === key.mark &&
       this.recursionKey.name === key.name
     ) {
-      this.recursionDepth--
+      this.recursionDepth--;
       if (this.recursionDepth <= 0) {
-        this.recursionKey = null
-        this.recursionDepth = 0
+        this.recursionKey = null;
+        this.recursionDepth = 0;
       }
     }
   }
 
   cut(): void {
-    this.cutStack[this.cutStack.length - 1] = true
-    this._tracer.traceCut(this)
-    const mark = this._cursor.mark()
+    this.cutStack[this.cutStack.length - 1] = true;
+    this._tracer.traceCut(this);
+    const mark = this._cursor.mark();
     if (!this.cfg().noPruneMemosOnCut && !this.inLookahead()) {
       if (mark > this.lastCutMark) {
-        pruneMemoCache(this.memoCache, this.lastCutMark)
-        this.lastCutMark = mark
+        pruneMemoCache(this.memoCache, this.lastCutMark);
+        this.lastCutMark = mark;
       }
     }
   }
 
   isCutSeen(): boolean {
-    return this.cutStack[this.cutStack.length - 1]
+    return this.cutStack[this.cutStack.length - 1];
   }
 
   cutStackPush(): void {
-    this.cutStack.push(false)
+    this.cutStack.push(false);
   }
 
   cutStackPop(): boolean {
-    const seen = this.isCutSeen()
-    this.cutStack.pop()
-    return seen
+    const seen = this.isCutSeen();
+    this.cutStack.pop();
+    return seen;
   }
 
   applySemantics(
@@ -363,10 +366,10 @@ export class CoreCtx implements Ctx {
     ruleName: string,
     params: string[],
   ): [TreeValue, boolean] {
-    const sem = this.cfg().semantics
+    const sem = this.cfg().semantics;
     if (sem !== null && sem !== undefined) {
-      return sem.apply(node, ruleName, params)
+      return sem.apply(node, ruleName, params);
     }
-    return [node, false]
+    return [node, false];
   }
 }

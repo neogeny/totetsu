@@ -64,19 +64,26 @@ norecursedirs = [
 ]
 
 [tool.hatch.build.targets.sdist]
+targets = ["sdist"]
 exclude = [
+    ".venv",
     ".github",
-    "bin/",
     "etc/",
     "fragments/",
     "public/",
+    "RULES.md",
 ]
-targets = ["wheel"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["srcpy/tsemekwes"]
 exclude = [
-    "**/__tests__/*",
+    ".venv",
+    ".cache",
+    "src/**/__tests__/*",
+    "bin/",
+    "fragments/",
+    "public/",
+    "RULES.md",
 ]
 
 [tool.hatch.build.targets.wheel.force-include]
