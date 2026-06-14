@@ -83,7 +83,7 @@ py-build: build
 py-test: build
     uv run pytest -vv
 
-py-publish-test: py-build
+py-publish-test: py-build py-doc
     gh workflow run testpublish.yml
     gh run list --workflow=testpublish.yml
 
