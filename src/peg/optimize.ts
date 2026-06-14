@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
 import {
   type AltExp,
   AltExp as AltExpCls,
@@ -39,7 +42,7 @@ import {
   SkipGroupExp as SkipGroupExpCls,
   type SkipToExp,
   SkipToExp as SkipToExpCls,
-} from "./exp.js"
+} from "./exp.js";
 
 export function optimizeExp(exp: Exp): Exp {
   switch (exp.kind) {
@@ -61,88 +64,88 @@ export function optimizeExp(exp: Exp): Exp {
     case ExpKind.UIntMeta:
     case ExpKind.FloatMeta:
     case ExpKind.BoolMeta:
-      return exp
+      return exp;
 
     case ExpKind.Group:
-      return optimizeExp((exp as GroupExp).exp)
+      return optimizeExp((exp as GroupExp).exp);
 
     case ExpKind.Named:
       return new NamedExpCls(
         (exp as NamedExp).name,
         optimizeExp((exp as NamedExp).exp),
-      )
+      );
     case ExpKind.NamedList:
       return new NamedListExpCls(
         (exp as NamedListExp).name,
         optimizeExp((exp as NamedListExp).exp),
-      )
+      );
     case ExpKind.Override:
-      return new OverrideExpCls(optimizeExp((exp as OverrideExp).exp))
+      return new OverrideExpCls(optimizeExp((exp as OverrideExp).exp));
     case ExpKind.OverrideList:
-      return new OverrideListExpCls(optimizeExp((exp as OverrideExp).exp))
+      return new OverrideListExpCls(optimizeExp((exp as OverrideExp).exp));
     case ExpKind.SkipGroup:
-      return new SkipGroupExpCls(optimizeExp((exp as SkipGroupExp).exp))
+      return new SkipGroupExpCls(optimizeExp((exp as SkipGroupExp).exp));
     case ExpKind.Lookahead:
-      return new LookaheadExpCls(optimizeExp((exp as LookaheadExp).exp))
+      return new LookaheadExpCls(optimizeExp((exp as LookaheadExp).exp));
     case ExpKind.NegativeLookahead:
       return new NegativeLookaheadExpCls(
         optimizeExp((exp as NegativeLookaheadExp).exp),
-      )
+      );
     case ExpKind.SkipTo:
-      return new SkipToExpCls(optimizeExp((exp as SkipToExp).exp))
+      return new SkipToExpCls(optimizeExp((exp as SkipToExp).exp));
     case ExpKind.Alt:
-      return new AltExpCls(optimizeExp((exp as AltExp).exp))
+      return new AltExpCls(optimizeExp((exp as AltExp).exp));
     case ExpKind.Optional:
-      return new OptionalExpCls(optimizeExp((exp as OptionalExp).exp))
+      return new OptionalExpCls(optimizeExp((exp as OptionalExp).exp));
     case ExpKind.Closure:
-      return new ClosureExpCls(optimizeExp((exp as ClosureExp).exp))
+      return new ClosureExpCls(optimizeExp((exp as ClosureExp).exp));
     case ExpKind.PositiveClosure:
       return new PositiveClosureExpCls(
         optimizeExp((exp as PositiveClosureExp).exp),
-      )
+      );
 
     case ExpKind.Join:
       return new JoinExpCls(
         optimizeExp((exp as JoinExp).exp),
         optimizeExp((exp as JoinExp).sep),
-      )
+      );
     case ExpKind.PositiveJoin:
       return new PositiveJoinExpCls(
         optimizeExp((exp as PositiveJoinExp).exp),
         optimizeExp((exp as PositiveJoinExp).sep),
-      )
+      );
     case ExpKind.Gather:
       return new GatherExpCls(
         optimizeExp((exp as GatherExp).exp),
         optimizeExp((exp as GatherExp).sep),
-      )
+      );
     case ExpKind.PositiveGather:
       return new PositiveGatherExpCls(
         optimizeExp((exp as PositiveGatherExp).exp),
         optimizeExp((exp as PositiveGatherExp).sep),
-      )
+      );
 
     case ExpKind.Sequence: {
-      const seq = (exp as SeqExp).sequence.map(optimizeExp)
-      if (seq.length === 1) return seq[0]
-      return new SeqExpCls(seq)
+      const seq = (exp as SeqExp).sequence.map(optimizeExp);
+      if (seq.length === 1) return seq[0];
+      return new SeqExpCls(seq);
     }
 
     case ExpKind.Choice: {
-      const opts = (exp as ChoiceExp).options.map(optimizeExp)
-      if (opts.length === 1) return opts[0]
-      return new ChoiceExpCls(opts)
+      const opts = (exp as ChoiceExp).options.map(optimizeExp);
+      if (opts.length === 1) return opts[0];
+      return new ChoiceExpCls(opts);
     }
 
     case ExpKind.RuleInclude: {
-      const e = exp as RuleIncludeExp
+      const e = exp as RuleIncludeExp;
       if (e.exp != null) {
-        return new RuleIncludeExpCls(e.name, optimizeExp(e.exp))
+        return new RuleIncludeExpCls(e.name, optimizeExp(e.exp));
       }
-      return exp
+      return exp;
     }
 
     default:
-      throw new Error(`optimizeExp: unhandled ExpKind: ${exp.kind}`)
+      throw new Error(`optimizeExp: unhandled ExpKind: ${exp.kind}`);
   }
 }

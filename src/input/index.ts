@@ -1,3 +1,6 @@
-export * from "./cursor.js"
-export * from "./cursor-str"
-export * from "./patterns"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+export * from "./cursor.js";
+export * from "./cursor-str";
+export * from "./patterns";

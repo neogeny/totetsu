@@ -1,21 +1,24 @@
-import type { TreeValue } from "@trees"
-import { isParseError, type ParseError } from "./error"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+import type { TreeValue } from "@trees";
+import { isParseError, type ParseError } from "./error";
 
 export interface MemoKey {
-  mark: number
-  name: string
-  canMemo: boolean
+  mark: number;
+  name: string;
+  canMemo: boolean;
 }
 
-export type MemoValue = TreeValue | ParseError
+export type MemoValue = TreeValue | ParseError;
 
 export interface Memo {
-  mark: number
-  value: MemoValue
+  mark: number;
+  value: MemoValue;
 }
 
 export function isBottomEntry(memo: Memo): boolean {
-  return isParseError(memo.value)
+  return isParseError(memo.value);
 }
 
 export function pruneMemoCache(
@@ -23,9 +26,9 @@ export function pruneMemoCache(
   cutPoint: number,
 ): void {
   for (const [keyStr, memo] of cache) {
-    const mark = parseInt(keyStr.split(":")[0], 10)
+    const mark = parseInt(keyStr.split(":")[0], 10);
     if (mark < cutPoint && !isBottomEntry(memo)) {
-      cache.delete(keyStr)
+      cache.delete(keyStr);
     }
   }
 }

@@ -1,3 +1,6 @@
-export * from "./boot"
-export * from "./import"
-export * from "./jsonl"
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
+
+export * from "./boot";
+export * from "./import";
+export * from "./jsonl";
