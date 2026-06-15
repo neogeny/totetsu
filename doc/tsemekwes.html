@@ -223,7 +223,7 @@ and map directly to the JSON serialization format.</p>
                 <section id="__version__">
                     <div class="attr variable">
             <span class="name">__version__</span>        =
-<span class="default_value">&#39;0.1.0&#39;</span>
+<span class="default_value">&#39;0.1.0.post31+db3c748&#39;</span>
 
         
     </div>
@@ -331,11 +331,11 @@ and map directly to the JSON serialization format.</p>
 
     </div>
     <a class="headerlink" href="#Grammar"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Grammar-212"><a href="#Grammar-212"><span class="linenos">212</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Grammar</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
-</span><span id="Grammar-213"><a href="#Grammar-213"><span class="linenos">213</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Grammar-214"><a href="#Grammar-214"><span class="linenos">214</span></a>    <span class="n">directives</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
-</span><span id="Grammar-215"><a href="#Grammar-215"><span class="linenos">215</span></a>    <span class="n">keywords</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-</span><span id="Grammar-216"><a href="#Grammar-216"><span class="linenos">216</span></a>    <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Rule</span><span class="p">]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Grammar-209"><a href="#Grammar-209"><span class="linenos">209</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Grammar</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
+</span><span id="Grammar-210"><a href="#Grammar-210"><span class="linenos">210</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Grammar-211"><a href="#Grammar-211"><span class="linenos">211</span></a>    <span class="n">directives</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+</span><span id="Grammar-212"><a href="#Grammar-212"><span class="linenos">212</span></a>    <span class="n">keywords</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span><span id="Grammar-213"><a href="#Grammar-213"><span class="linenos">213</span></a>    <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Rule</span><span class="p">]</span>
 </span></pre></div>
 
 
@@ -511,19 +511,19 @@ and map directly to the JSON serialization format.</p>
 
     </div>
     <a class="headerlink" href="#Rule"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Rule-194"><a href="#Rule-194"><span class="linenos">194</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Rule</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
-</span><span id="Rule-195"><a href="#Rule-195"><span class="linenos">195</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Rule-196"><a href="#Rule-196"><span class="linenos">196</span></a>    <span class="n">params</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-</span><span id="Rule-197"><a href="#Rule-197"><span class="linenos">197</span></a>    <span class="n">kwparams</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
-</span><span id="Rule-198"><a href="#Rule-198"><span class="linenos">198</span></a>    <span class="n">decorators</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-</span><span id="Rule-199"><a href="#Rule-199"><span class="linenos">199</span></a>    <span class="n">base</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="Rule-200"><a href="#Rule-200"><span class="linenos">200</span></a>    <span class="n">is_name</span><span class="p">:</span> <span class="nb">bool</span>
-</span><span id="Rule-201"><a href="#Rule-201"><span class="linenos">201</span></a>    <span class="n">is_tokn</span><span class="p">:</span> <span class="nb">bool</span>
-</span><span id="Rule-202"><a href="#Rule-202"><span class="linenos">202</span></a>    <span class="n">no_memo</span><span class="p">:</span> <span class="nb">bool</span>
-</span><span id="Rule-203"><a href="#Rule-203"><span class="linenos">203</span></a>    <span class="n">no_stak</span><span class="p">:</span> <span class="nb">bool</span>
-</span><span id="Rule-204"><a href="#Rule-204"><span class="linenos">204</span></a>    <span class="n">is_memo</span><span class="p">:</span> <span class="nb">bool</span>
-</span><span id="Rule-205"><a href="#Rule-205"><span class="linenos">205</span></a>    <span class="n">is_lrec</span><span class="p">:</span> <span class="nb">bool</span>
-</span><span id="Rule-206"><a href="#Rule-206"><span class="linenos">206</span></a>    <span class="n">exp</span><span class="p">:</span> <span class="s1">&#39;Exp&#39;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Rule-191"><a href="#Rule-191"><span class="linenos">191</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Rule</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
+</span><span id="Rule-192"><a href="#Rule-192"><span class="linenos">192</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Rule-193"><a href="#Rule-193"><span class="linenos">193</span></a>    <span class="n">params</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span><span id="Rule-194"><a href="#Rule-194"><span class="linenos">194</span></a>    <span class="n">kwparams</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+</span><span id="Rule-195"><a href="#Rule-195"><span class="linenos">195</span></a>    <span class="n">decorators</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span><span id="Rule-196"><a href="#Rule-196"><span class="linenos">196</span></a>    <span class="n">base</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="Rule-197"><a href="#Rule-197"><span class="linenos">197</span></a>    <span class="n">is_name</span><span class="p">:</span> <span class="nb">bool</span>
+</span><span id="Rule-198"><a href="#Rule-198"><span class="linenos">198</span></a>    <span class="n">is_tokn</span><span class="p">:</span> <span class="nb">bool</span>
+</span><span id="Rule-199"><a href="#Rule-199"><span class="linenos">199</span></a>    <span class="n">no_memo</span><span class="p">:</span> <span class="nb">bool</span>
+</span><span id="Rule-200"><a href="#Rule-200"><span class="linenos">200</span></a>    <span class="n">no_stak</span><span class="p">:</span> <span class="nb">bool</span>
+</span><span id="Rule-201"><a href="#Rule-201"><span class="linenos">201</span></a>    <span class="n">is_memo</span><span class="p">:</span> <span class="nb">bool</span>
+</span><span id="Rule-202"><a href="#Rule-202"><span class="linenos">202</span></a>    <span class="n">is_lrec</span><span class="p">:</span> <span class="nb">bool</span>
+</span><span id="Rule-203"><a href="#Rule-203"><span class="linenos">203</span></a>    <span class="n">exp</span><span class="p">:</span> <span class="s1">&#39;Exp&#39;</span>
 </span></pre></div>
 
 
