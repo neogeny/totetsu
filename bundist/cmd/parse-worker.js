@@ -8633,6 +8633,18 @@ If you're a developer and you believe this is a bug in isomorphic-git, please fi
    * This code for `path.join` is directly copied from @zenfs/core/path for bundle size improvements.
    * SPDX-License-Identifier: LGPL-3.0-or-later
    * Copyright (c) James Prevett and other ZenFS contributors.
+   *
+   * Windows support added:
+   *   - Backslashes are normalised to forward slashes before processing.
+   *   - Drive-letter prefixes (e.g. "C:") are detected and preserved through
+   *     normalisation, so absolute Windows paths are handled correctly.
+   *   - An absolute argument passed to join() resets the accumulated path,
+   *     matching Node behaviour and handling worktree gitdir paths properly.
+   *
+   * Limitation: UNC paths (e.g. \\server\share) are not supported. The leading
+   *   backslashes are normalised to forward slashes and then collapsed by
+   *   normalizeString, losing the UNC root. Git on Windows works with
+   *   drive-letter paths, so this is not expected to be a practical issue.
    */
   function normalizeString(path, aar) {
     let res = "";
@@ -8691,28 +8703,43 @@ If you're a developer and you believe this is a bug in isomorphic-git, please fi
     }
     return res;
   }
+  function getWindowsDrivePrefix(path) {
+    if (path.length >= 2 && /^[a-zA-Z]:/.test(path)) {
+      return path.slice(0, 2);
+    }
+    return null;
+  }
   function normalize(path) {
     if (!path.length)
       return ".";
-    const isAbsolute2 = path[0] === "/";
+    path = path.replace(/\\/g, "/");
+    const drivePrefix = getWindowsDrivePrefix(path);
+    const isAbsolute2 = path[0] === "/" || drivePrefix !== null && path[2] === "/";
     const trailingSeparator = path.at(-1) === "/";
-    path = normalizeString(path, !isAbsolute2);
-    if (!path.length) {
-      if (isAbsolute2)
-        return "/";
-      return trailingSeparator ? "./" : ".";
+    const pathBody = drivePrefix ? path.slice(2) : path;
+    let normalized = normalizeString(pathBody, !isAbsolute2);
+    if (!normalized.length) {
+      const root = drivePrefix ? isAbsolute2 ? drivePrefix + "/" : drivePrefix : isAbsolute2 ? "/" : ".";
+      return trailingSeparator && !isAbsolute2 ? root + "/" : root;
     }
     if (trailingSeparator)
-      path += "/";
-    return isAbsolute2 ? `/${path}` : path;
+      normalized += "/";
+    if (drivePrefix) {
+      return isAbsolute2 ? `${drivePrefix}/${normalized}` : `${drivePrefix}${normalized}`;
+    }
+    return isAbsolute2 ? `/${normalized}` : normalized;
   }
   function join(...args) {
     if (args.length === 0)
       return ".";
     let joined;
     for (let i = 0;i < args.length; ++i) {
-      const arg = args[i];
-      if (arg.length > 0) {
+      const arg = args[i].replace(/\\/g, "/");
+      if (arg.length === 0)
+        continue;
+      if (/^[a-zA-Z]:\//.test(arg)) {
+        joined = arg;
+      } else {
         if (joined === undefined)
           joined = arg;
         else
@@ -13989,6 +14016,14 @@ gpgsig`));
     }
     return result;
   }
+  function addCredentialUsername({ config: config2, onAuth }) {
+    if (!onAuth)
+      return onAuth;
+    return async (url, auth) => {
+      const username = auth.username || await config2.get(`credential.${url}.username`);
+      return onAuth(url, username ? { ...auth, username } : auth);
+    };
+  }
   function emptyPackfile(pack) {
     const pheader = "5041434b";
     const version2 = "00000002";
@@ -14005,8 +14040,8 @@ gpgsig`));
   }
   var pkg = {
     name: "isomorphic-git",
-    version: "1.38.3",
-    agent: "git/isomorphic-git@1.38.3"
+    version: "1.38.5",
+    agent: "git/isomorphic-git@1.38.5"
   };
 
   class FIFO {
@@ -14261,9 +14296,9 @@ gpgsig`));
     const GitRemoteHTTP2 = GitRemoteManager.getRemoteHelperFor({ url });
     const remoteHTTP = await GitRemoteHTTP2.discover({
       http,
-      onAuth,
+      onAuth: addCredentialUsername({ config: config2, onAuth }),
       onAuthSuccess,
-      onAuthFailure,
+      onAuthFailure: addCredentialUsername({ config: config2, onAuth: onAuthFailure }),
       corsProxy,
       service: "git-upload-pack",
       url,
@@ -16637,9 +16672,9 @@ gpgsig`));
     const GitRemoteHTTP2 = GitRemoteManager.getRemoteHelperFor({ url });
     const httpRemote = await GitRemoteHTTP2.discover({
       http,
-      onAuth,
+      onAuth: addCredentialUsername({ config: config2, onAuth }),
       onAuthSuccess,
-      onAuthFailure,
+      onAuthFailure: addCredentialUsername({ config: config2, onAuth: onAuthFailure }),
       corsProxy,
       service: "git-receive-pack",
       url,
