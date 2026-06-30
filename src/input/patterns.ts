@@ -30,7 +30,7 @@ export function newPatterns(
 }
 
 export function defaultPatterns(): TokenizingPatterns {
-  const pat = newPatterns("\\s+", "[^\\s\\S]", "[^\\s\\S]");
+  const pat = newPatterns("(?m)\\s+", "[^\\s\\S]", "[^\\s\\S]");
   pat.nonDefault = false;
   return pat;
 }
