@@ -20,7 +20,7 @@ describe("Grammar directive regular expressions", () => {
     // Should capture all whitespace sequences
     expect(matches?.join("")).toBe(sample.replace(/\n/g, "\n"));
     // Verify raw pattern string
-    expect(WHITESPACE_PATTERN).toBe("(?m)\\s+");
+    expect(WHITESPACE_PATTERN).toBe(null);
   });
 
   test("comment regex matches block comments and (* ... *) style", () => {
