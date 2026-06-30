@@ -32,10 +32,10 @@ export class CursorHeavy {
 }
 
 export class StrCursor implements Cursor {
-  private readonly text: string;
-  private offset: number = 0;
+  readonly text: string;
+  offset: number = 0;
   // noinspection TypeScriptFieldCanBeMadeReadonly
-  private heavy: CursorHeavy;
+  heavy: CursorHeavy;
 
   constructor(text: string);
   constructor(text: string, source: string, start: number);
@@ -323,11 +323,12 @@ export class StrCursor implements Cursor {
     regex: RegExp,
     withBoundary: boolean = true,
   ): string | null {
-    let start = this.offset;
+    const start = this.offset;
 
     const slice = this.text.slice(this.offset);
     const match = slice.match(regex);
     if (!match) return null;
+    if (match.index !== 0) return null;
 
     this.offset += match[0].length;
     if (withBoundary && !this.isBoundary()) {
