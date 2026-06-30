@@ -67,9 +67,16 @@ export class Grammar extends Exp {
     this._optrules = this.rules.map((r) => r.optimized());
   }
 
-  optimized(): this {
-    this.optimize();
-    return this;
+  optimized(): Grammar {
+    if (!this._optrules) this.optimize();
+    const g = new Grammar(
+      this.name,
+      this._optrules!,
+      this.directives,
+      this.keywords,
+    );
+    g.initialize();
+    return g;
   }
 
   normalize(): void {

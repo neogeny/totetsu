@@ -5,7 +5,8 @@ import type { Ctx } from "@context";
 import { NodeTree, type TreeValue, treeFold } from "@trees";
 import { asjson } from "../util/asjson";
 import { computeLA } from "./analysis/lookahead";
-import { BoxExp, type Exp, ExpKind } from "./exp.js";
+import { BoxExp, type Exp, ExpKind, GroupExp, SeqExp } from "./exp.js";
+import { CallExp } from "./call.js";
 import { serializeRule } from "./json";
 import { optimizeExp } from "./optimize.js";
 
@@ -83,9 +84,30 @@ export class Rule extends BoxExp {
   }
 
   optimized(): Rule {
+    let exp = optimizeExp(this.exp);
+
+    let prev: Exp | null = null;
+    while (exp !== prev) {
+      prev = exp;
+
+      if (exp instanceof SeqExp && exp.sequence.length === 1) {
+        exp = exp.sequence[0];
+        continue;
+      }
+
+      if (exp instanceof CallExp && exp.rule != null && exp.rule.params.length === 0) {
+        exp = optimizeExp(exp.rule.exp);
+        continue;
+      }
+
+      if (exp instanceof GroupExp) {
+        exp = optimizeExp(exp.exp);
+      }
+    }
+
     return new Rule(
       this.name,
-      optimizeExp(this.exp),
+      exp,
       [...this.params],
       new Map(this.kwParams),
       [...this.decorators],

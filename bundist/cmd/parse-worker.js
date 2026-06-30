@@ -27260,8 +27260,11 @@ class Grammar extends Exp {
     this._optrules = this.rules.map((r) => r.optimized());
   }
   optimized() {
-    this.optimize();
-    return this;
+    if (!this._optrules)
+      this.optimize();
+    const g = new Grammar(this.name, this._optrules, this.directives, this.keywords);
+    g.initialize();
+    return g;
   }
   normalize() {
     for (const r of this.rules) {
@@ -27519,6 +27522,32 @@ function mergeLA(a, b) {
 }
 
 // src/peg/optimize.ts
+function isLeafKind(kind) {
+  switch (kind) {
+    case "Nil" /* Nil */:
+    case "Cut" /* Cut */:
+    case "Void" /* Void */:
+    case "Fail" /* Fail */:
+    case "Dot" /* Dot */:
+    case "Eof" /* Eof */:
+    case "Eol" /* Eol */:
+    case "EmptyClosure" /* EmptyClosure */:
+    case "Token" /* Token */:
+    case "Pattern" /* Pattern */:
+    case "Constant" /* Constant */:
+    case "Alert" /* Alert */:
+    case "Call" /* Call */:
+    case "RuleInclude" /* RuleInclude */:
+    case "NameMeta" /* NameMeta */:
+    case "IntMeta" /* IntMeta */:
+    case "UIntMeta" /* UIntMeta */:
+    case "FloatMeta" /* FloatMeta */:
+    case "BoolMeta" /* BoolMeta */:
+      return true;
+    default:
+      return false;
+  }
+}
 function optimizeExp(exp) {
   switch (exp.kind) {
     case "Nil" /* Nil */:
@@ -27533,15 +27562,33 @@ function optimizeExp(exp) {
     case "Pattern" /* Pattern */:
     case "Constant" /* Constant */:
     case "Alert" /* Alert */:
-    case "Call" /* Call */:
     case "NameMeta" /* NameMeta */:
     case "IntMeta" /* IntMeta */:
     case "UIntMeta" /* UIntMeta */:
     case "FloatMeta" /* FloatMeta */:
     case "BoolMeta" /* BoolMeta */:
       return exp;
-    case "Group" /* Group */:
-      return optimizeExp(exp.exp);
+    case "Call" /* Call */: {
+      const call2 = exp;
+      if (call2.rule == null) {
+        return new CallExp(call2.name);
+      }
+      let rule = call2.rule;
+      while (rule.exp instanceof CallExp && rule.params.length === 0) {
+        const inner = rule.exp;
+        if (!inner.rule)
+          break;
+        rule = inner.rule;
+      }
+      return new CallExp(call2.name, rule);
+    }
+    case "Group" /* Group */: {
+      const inner = optimizeExp(exp.exp);
+      if (isLeafKind(inner.kind) || inner.kind === "Group" /* Group */) {
+        return inner;
+      }
+      return new GroupExp(inner);
+    }
     case "Named" /* Named */:
       return new NamedExp(exp.name, optimizeExp(exp.exp));
     case "NamedList" /* NamedList */:
@@ -27559,7 +27606,7 @@ function optimizeExp(exp) {
     case "SkipTo" /* SkipTo */:
       return new SkipToExp(optimizeExp(exp.exp));
     case "Alt" /* Alt */:
-      return new AltExp(optimizeExp(exp.exp));
+      return optimizeExp(exp.exp);
     case "Optional" /* Optional */:
       return new OptionalExp(optimizeExp(exp.exp));
     case "Closure" /* Closure */:
@@ -27663,7 +27710,23 @@ class Rule extends BoxExp {
   }
   normalize() {}
   optimized() {
-    return new Rule(this.name, optimizeExp(this.exp), [...this.params], new Map(this.kwParams), [...this.decorators], this.base, this.isName, this.isTokn, this.noMemo, this.noStak, this.isMemo, this.isLrec);
+    let exp = optimizeExp(this.exp);
+    let prev = null;
+    while (exp !== prev) {
+      prev = exp;
+      if (exp instanceof SeqExp && exp.sequence.length === 1) {
+        exp = exp.sequence[0];
+        continue;
+      }
+      if (exp instanceof CallExp && exp.rule != null && exp.rule.params.length === 0) {
+        exp = optimizeExp(exp.rule.exp);
+        continue;
+      }
+      if (exp instanceof GroupExp) {
+        exp = optimizeExp(exp.exp);
+      }
+    }
+    return new Rule(this.name, exp, [...this.params], new Map(this.kwParams), [...this.decorators], this.base, this.isName, this.isTokn, this.noMemo, this.noStak, this.isMemo, this.isLrec);
   }
 }
 

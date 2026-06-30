@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
 // SPDX-License-Identifier: Apache-2.0
 
+import { CallExp } from "./call.js";
 import {
   type AltExp,
-  AltExp as AltExpCls,
   type ChoiceExp,
   ChoiceExp as ChoiceExpCls,
   type ClosureExp,
@@ -13,6 +13,7 @@ import {
   type GatherExp,
   GatherExp as GatherExpCls,
   type GroupExp,
+  GroupExp as GroupExpCls,
   type JoinExp,
   JoinExp as JoinExpCls,
   type LookaheadExp,
@@ -44,6 +45,33 @@ import {
   SkipToExp as SkipToExpCls,
 } from "./exp.js";
 
+function isLeafKind(kind: ExpKind): boolean {
+  switch (kind) {
+    case ExpKind.Nil:
+    case ExpKind.Cut:
+    case ExpKind.Void:
+    case ExpKind.Fail:
+    case ExpKind.Dot:
+    case ExpKind.Eof:
+    case ExpKind.Eol:
+    case ExpKind.EmptyClosure:
+    case ExpKind.Token:
+    case ExpKind.Pattern:
+    case ExpKind.Constant:
+    case ExpKind.Alert:
+    case ExpKind.Call:
+    case ExpKind.RuleInclude:
+    case ExpKind.NameMeta:
+    case ExpKind.IntMeta:
+    case ExpKind.UIntMeta:
+    case ExpKind.FloatMeta:
+    case ExpKind.BoolMeta:
+      return true;
+    default:
+      return false;
+  }
+}
+
 export function optimizeExp(exp: Exp): Exp {
   switch (exp.kind) {
     case ExpKind.Nil:
@@ -58,7 +86,6 @@ export function optimizeExp(exp: Exp): Exp {
     case ExpKind.Pattern:
     case ExpKind.Constant:
     case ExpKind.Alert:
-    case ExpKind.Call:
     case ExpKind.NameMeta:
     case ExpKind.IntMeta:
     case ExpKind.UIntMeta:
@@ -66,8 +93,27 @@ export function optimizeExp(exp: Exp): Exp {
     case ExpKind.BoolMeta:
       return exp;
 
-    case ExpKind.Group:
-      return optimizeExp((exp as GroupExp).exp);
+    case ExpKind.Call: {
+      const call = exp as CallExp;
+      if (call.rule == null) {
+        return new CallExp(call.name);
+      }
+      let rule = call.rule;
+      while (rule.exp instanceof CallExp && rule.params.length === 0) {
+        const inner = rule.exp as CallExp;
+        if (!inner.rule) break;
+        rule = inner.rule;
+      }
+      return new CallExp(call.name, rule);
+    }
+
+    case ExpKind.Group: {
+      const inner = optimizeExp((exp as GroupExp).exp);
+      if (isLeafKind(inner.kind) || inner.kind === ExpKind.Group) {
+        return inner;
+      }
+      return new GroupExpCls(inner);
+    }
 
     case ExpKind.Named:
       return new NamedExpCls(
@@ -94,7 +140,7 @@ export function optimizeExp(exp: Exp): Exp {
     case ExpKind.SkipTo:
       return new SkipToExpCls(optimizeExp((exp as SkipToExp).exp));
     case ExpKind.Alt:
-      return new AltExpCls(optimizeExp((exp as AltExp).exp));
+      return optimizeExp((exp as AltExp).exp);
     case ExpKind.Optional:
       return new OptionalExpCls(optimizeExp((exp as OptionalExp).exp));
     case ExpKind.Closure:
