@@ -20,12 +20,12 @@ clean:
 
 # Format code with Biome
 fmt:
-    bun x biome format --semicolons=as-needed {{ src }} --write
+    bun biome format --semicolons=as-needed {{ src }} --write
 
 # Check both structural code metrics and type definitions
 lint: fmt
-    bun x tsc --noEmit
-    bun x biome check --write {{ src }}
+    bun tsc --noEmit
+    bun biome check --write {{ src }}
 
 # Compile the TypeScript codebase down into a single high-performance binary artifact
 build: clean lint
@@ -51,7 +51,7 @@ cli *args: bundle
     bun run ./bundist/tsemekwes {{ args }}
 
 test: build
-    bun test --only-failures  \
+    bun test --quiet --only-failures  \
       {{ src }}/__tests__/*.test.ts \
       {{ src }}/__tests__/**/*.test.ts \
       {{ src }}/**/__tests__/*.test.ts \

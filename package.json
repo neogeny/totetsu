@@ -12,7 +12,8 @@
     }
   },
   "imports": {
-    "#": "./src",
+    "#src/*": "./src/*",
+    "#lib/*": "./src/lib/*",
     "#api/*": "./src/api/*"
   },
   "bin": {
@@ -53,5 +54,8 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.22.4",
     "xregexp": "^5.1.2"
+  },
+  "overrides": {
+    "punycode": "^2.3.1"
   }
 }
