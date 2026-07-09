@@ -1,15 +1,33 @@
 <!--
+// Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+// SPDX-License-Identifier: Apache-2.0
 -->
 # Changelog
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-[Unreleased]: https://github.com/neogeny/tsemekwes/compare/v0.1.1...HEAD
-[v0.1.0]: https://github.com/neogeny/tsemekwes/releases/tag/v0.1.1
+[Unreleased]: https://github.com/neogeny/tsemekwes/compare/v0.2.0...HEAD
+[v0.2.0]: https://github.com/neogeny/tsemekwes/compare/v0.1.1...v0.2.0
+[v0.1.1]: https://github.com/neogeny/tsemekwes/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/neogeny/tsemekwes/releases/tag/v0.1.0
 
 ## [Unreleased]
+
+## [v0.2.0] 2026-07-09 Optimize + Bugfixes + Grammar Alignment
+
+### Fixed
+
+- By-one error in `Memento` pointer location (`src/context/memento.ts`).
+- Meta patterns now properly verify match position is zero (`src/input/cursor-str.ts`).
+- Default whitespace pattern behavior when no `@@whitespace` directive is set (`src/input/patterns.ts`).
+
+### Changed
+
+- Directives: TatSu grammars no longer predefine a `wsp` pattern. The empty-string default is
+  applied at parse time instead (`src/peg/directives.ts`).
+- Model optimization patterns applied across the parser internals.
+- Grammar definitions updated to track the latest TatSu EBNF semantics.
 
 ## [v0.1.1] 2026-06-14 New Syntax + Semantics + Optimize
 
@@ -46,16 +64,16 @@ Initial public release, feature-fairly-complete.
   ```bash
   $ bin/emekwes run --help
   Usage: emekwes run [options] <grammar> [inputs...]
-  
+
   execute a grammar against one or more input files
-  
+
   Options:
     -j, --json            output the parse tree in JSON format
     -s, --start <rule>    name of the start rule (default: "start")
     -n, --nproc <number>  number of concurrent workers (default: CPU count)
                           (default: 0)
     -h, --help            display help for command
-  
+
   Global Options:
     -c, --color <when>    control terminal color output (choices: "auto",
                           "always", "never", default: "auto")
